@@ -1,0 +1,15 @@
+{% extends "base.html" %}{% block title %}Users{% endblock %}
+{% block content %}
+<h1>Users</h1><p class="sub">Add students, faculty and administrators.</p>
+<div class="card"><form method="post"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><div class="grid">
+<div><label>Name</label><input name="name" required></div>
+<div><label>Email</label><input name="email" type="email" placeholder="Gmail for students; campus email for staff" required></div>
+<div><label>Password</label><input name="password" type="password" minlength="12" autocomplete="new-password" required></div>
+<div><label>Role</label><select name="role"><option>student</option><option>faculty</option><option>admin</option></select></div>
+<div><label>Roll no. (students)</label><input name="roll_no"></div>
+<div><label>Department</label><input name="department"></div>
+<div><button type="submit">Add user</button></div></div></form></div>
+<div class="table-wrap"><table><tr><th>Name</th><th>Email</th><th>Role</th><th>Roll no.</th><th>Department</th><th></th></tr>
+{% for u in users %}<tr><td>{{ u.name }}</td><td>{{ u.email }}</td><td><span class="tag">{{ u.role }}</span></td><td>{{ u.roll_no or '' }}</td><td>{{ u.department or '' }}</td>
+<td><form class="inline" method="post" action="{{ url_for('delete_user', uid=u.id) }}" onsubmit="return confirm('Delete {{ u.name }}?')"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="danger small">Delete</button></form></td></tr>{% endfor %}</table></div>
+{% endblock %}

@@ -1,0 +1,21 @@
+{% extends "base.html" %}{% block title %}{{ course.code }}{% endblock %}
+{% block content %}
+<h1>{{ course.code }} — {{ course.title }}</h1><p class="sub">Learning space</p>
+<h2>Study material</h2>
+{% if manage %}<form method="post" action="{{ url_for('add_material', cid=course.id) }}" class="card"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><div class="grid">
+<div><label>Title</label><input name="title" required></div><div><label>Link (optional)</label><input name="url" type="url" placeholder="https://"></div>
+<div><label>Notes</label><input name="description"></div><div><button>Add material</button></div></div></form>{% endif %}
+{% if materials %}<table><tr><th>Title</th><th>Notes</th><th>Added</th></tr>
+{% for m in materials %}<tr><td>{% if m.url %}<a href="{{ m.url }}" target="_blank" rel="noopener">{{ m.title }}</a>{% else %}{{ m.title }}{% endif %}</td><td>{{ m.description or '' }}</td><td>{{ m.created_at[:10] }}</td></tr>{% endfor %}</table>
+{% else %}<div class="empty">No study material has been shared yet.</div>{% endif %}
+<h2>Assignments</h2>
+{% if manage %}<form method="post" action="{{ url_for('add_assignment', cid=course.id) }}" class="card"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><div class="grid">
+<div><label>Title</label><input name="title" required></div><div><label>Due date</label><input name="due_date" type="date"></div>
+<div><label>Maximum marks</label><input name="max_marks" type="number" value="10" min="1"></div><div><label>Instructions</label><input name="description"></div>
+<div><button>Post assignment</button></div></div></form>{% endif %}
+{% if assignments %}<table><tr><th>Assignment</th><th>Due</th><th>{{ 'Submissions' if manage else 'Status' }}</th><th></th></tr>
+{% for a in assignments %}<tr><td>{{ a.title }}</td><td>{{ a.due_date or '—' }}</td>
+<td>{% if manage %}{{ a.sub_count }}{% elif a.sub_id %}{% if a.grade is not none %}<span class="tag ok">Graded {{ a.grade|round(1) }}/{{ a.max_marks }}</span>{% else %}<span class="tag warn">Submitted</span>{% endif %}{% else %}<span class="tag bad">Not submitted</span>{% endif %}</td>
+<td><a class="btn ghost small" href="{{ url_for('assignment', aid=a.id) }}">{{ 'Review' if manage else 'Open' }}</a></td></tr>{% endfor %}</table>
+{% else %}<div class="empty">No assignments yet.</div>{% endif %}
+{% endblock %}

@@ -1,0 +1,14 @@
+{% extends "base.html" %}{% block title %}Enter marks{% endblock %}
+{% block content %}
+<h1>{{ course.code }} results</h1><p class="sub">{{ course.title }}. Re-using an exam name updates its marks.</p>
+{% if students %}
+<form method="post" class="card"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><div class="grid">
+<div><label>Exam name</label><input name="exam" placeholder="Midterm" required></div>
+<div><label>Maximum marks</label><input name="max_marks" type="number" step="0.5" min="1" value="100" required></div></div>
+<table style="margin-top:14px"><tr><th>Roll no.</th><th>Name</th><th>Marks</th></tr>
+{% for s in students %}<tr><td>{{ s.roll_no or '' }}</td><td>{{ s.name }}</td><td><input name="marks_{{ s.id }}" type="number" step="0.5" min="0" style="max-width:120px" aria-label="Marks for {{ s.name }}"></td></tr>{% endfor %}</table>
+<p><button>Save marks</button> <span class="muted">Leave blank to skip a student.</span></p></form>
+{% else %}<div class="empty">No students are enrolled in this course.</div>{% endif %}
+{% if existing %}<h2>Recorded marks</h2><table><tr><th>Exam</th><th>Roll no.</th><th>Student</th><th>Marks</th></tr>
+{% for r in existing %}<tr><td>{{ r.exam }}</td><td>{{ r.roll_no or '' }}</td><td>{{ r.name }}</td><td>{{ r.marks|round(1) }} / {{ r.max_marks|round(1) }}</td></tr>{% endfor %}</table>{% endif %}
+{% endblock %}

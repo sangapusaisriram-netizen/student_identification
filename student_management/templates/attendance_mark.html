@@ -1,0 +1,13 @@
+{% extends "base.html" %}{% block title %}Mark attendance{% endblock %}
+{% block content %}
+<h1>{{ course.code }} attendance</h1><p class="sub">{{ course.title }}</p>
+<form method="get" class="card grid"><div><label>Date</label><input type="date" name="date" value="{{ day }}" max="{{ today }}"></div><div><button>Load date</button></div></form>
+{% if students %}
+<form method="post"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><input type="hidden" name="date" value="{{ day }}">
+<table><tr><th>Roll no.</th><th>Name</th><th>Present on {{ day }}</th><th>Overall</th></tr>
+{% for s in students %}{% set t = totals.get(s.id) %}<tr><td>{{ s.roll_no or '' }}</td><td>{{ s.name }}</td>
+<td><input type="checkbox" name="present" value="{{ s.id }}" {{ 'checked' if status[s.id] }} aria-label="Present: {{ s.name }}"></td>
+<td>{% if t %}{{ (100*t.present/t.total)|round(1) }}% ({{ t.present }}/{{ t.total }}){% else %}<span class="muted">—</span>{% endif %}</td></tr>{% endfor %}</table>
+<p><button>Save attendance</button></p></form>
+{% else %}<div class="empty">No students are enrolled in this course.</div>{% endif %}
+{% endblock %}

@@ -1,0 +1,10 @@
+{% extends "base.html" %}{% block title %}Dashboard{% endblock %}
+{% block content %}
+<h1>Welcome, {{ me.name }}</h1><p class="sub">{{ me.role|capitalize }} dashboard</p>
+<div class="stats">{% for k,v in stats.items() %}<div class="stat"><b>{{ v }}</b><span>{{ k }}</span></div>{% endfor %}</div>
+<h2>{{ 'Your courses' if me.role!='admin' else 'All courses' }}</h2>
+{% if courses %}<table><tr><th>Code</th><th>Title</th><th>Credits</th><th>Semester</th><th></th></tr>
+{% for c in courses %}<tr><td>{{ c.code }}</td><td>{{ c.title }}</td><td>{{ c.credits }}</td><td>{{ c.semester }}</td>
+<td><a href="{{ url_for('lms_course', cid=c.id) }}">Open learning space</a></td></tr>{% endfor %}</table>
+{% else %}<div class="empty">{{ 'No courses yet. Enroll from the Academics page.' if me.role=='student' else 'No courses assigned yet.' }}</div>{% endif %}
+{% endblock %}

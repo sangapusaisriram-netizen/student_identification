@@ -1,0 +1,16 @@
+{% extends "base.html" %}{% block title %}Create account{% endblock %}
+{% block content %}
+<div class="card auth-card">
+  <h1>Create your account</h1>
+  <p class="sub">Student accounts are self-service. Faculty and administrator accounts are managed by your campus.</p>
+  <form method="post">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <p><label for="name">Full name</label><input id="name" name="name" autocomplete="name" required maxlength="120"></p>
+    <p><label for="email">Gmail address</label><input id="email" name="email" type="email" autocomplete="email" placeholder="sunny@gmail.com" pattern=".+@gmail\.com" required maxlength="254"></p>
+    <p><label for="password">Password</label><input id="password" name="password" type="password" autocomplete="new-password" minlength="12" required><small class="field-hint">Use at least 12 characters, including uppercase, lowercase, and a number. Sign in with this Gmail and password.</small></p>
+    <p><label for="confirm-password">Confirm password</label><input id="confirm-password" name="confirm_password" type="password" autocomplete="new-password" minlength="12" required></p>
+    <button type="submit">Create student account</button>
+  </form>
+  <p class="auth-links"><span>Already registered? <a href="{{ url_for('login') }}">Sign in</a></span></p>
+</div>
+{% endblock %}

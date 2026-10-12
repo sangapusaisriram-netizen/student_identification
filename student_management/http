@@ -1,0 +1,28 @@
+# Campus Hub – Student Management System (Flask + SQLite)
+
+Modules: **Academics** (courses, enrollment), **Attendance**, **Results** (grades + CGPA),
+**LMS** (materials, assignments, grading), **Skills**, **Placements**, **Feedback**.
+Roles: admin, faculty, student.
+
+## Run
+    pip pythoninstall -r requirements.txt
+     seed.py        # optional: loads demo data (resets the database)
+    python app.py         # http://127.0.0.1:5000
+
+Without `seed.py`, a fresh database is created with one account:
+`admin@college.edu` / `admin123` (change it after first login).
+
+Demo logins after `python seed.py` (password `password123` unless noted):
+- admin@college.edu / admin123
+- meera@college.edu (faculty)
+- aarav@college.edu (student)
+
+## Notes
+- Set `SECRET_KEY` (and optionally `SMS_DB` for the database path) as environment variables in production.
+- Run behind a real WSGI server (e.g. `gunicorn app:app`) when deploying, and turn off `debug=True`.
+- Forms have no CSRF protection yet; add Flask-WTF before exposing this publicly.
+
+## Layout
+    app.py        routes + helpers      schema.sql   database tables
+    seed.py       demo data             templates/   Jinja pages
+    static/       stylesheet

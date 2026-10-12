@@ -1,0 +1,8 @@
+{% extends "base.html" %}{% block title %}{{ title }}{% endblock %}
+{% block content %}
+<h1>{{ title }}</h1><p class="sub">Choose a course.</p>
+{% if courses %}<table><tr><th>Code</th><th>Title</th><th>Sem</th><th></th></tr>
+{% for c in courses %}<tr><td>{{ c.code }}</td><td>{{ c.title }}</td><td>{{ c.semester }}</td>
+<td><a class="btn small" href="{{ url_for(endpoint, cid=c.id) }}">{{ action }}</a></td></tr>{% endfor %}</table>
+{% else %}<div class="empty">{{ 'You are not enrolled in any course yet. Enroll from Academics.' if me.role=='student' else 'No courses assigned to you yet.' }}</div>{% endif %}
+{% endblock %}

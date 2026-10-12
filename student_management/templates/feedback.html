@@ -1,0 +1,20 @@
+{% extends "base.html" %}{% block title %}Feedback{% endblock %}
+{% block content %}
+<h1>Feedback</h1>
+{% if me.role=='student' %}<p class="sub">Tell us how your courses are going. You can stay anonymous.</p>
+{% if courses %}<form method="post" class="card"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><div class="grid">
+<div><label>Course</label><select name="course_id">{% for c in courses %}<option value="{{ c.id }}">{{ c.code }} — {{ c.title }}</option>{% endfor %}</select></div>
+<div><label>Rating</label><select name="rating"><option value="5">5 – Excellent</option><option value="4">4 – Good</option><option value="3">3 – Average</option><option value="2">2 – Poor</option><option value="1">1 – Very poor</option></select></div></div>
+<p><label>Comments</label><textarea name="comments"></textarea></p>
+<p><label style="display:flex;gap:8px;align-items:center"><input type="checkbox" name="anonymous" value="1"> Hide my name from faculty</label></p>
+<button>Send feedback</button></form>
+{% else %}<div class="empty">Enroll in a course to give feedback.</div>{% endif %}
+{% if mine %}<h2>Your past feedback</h2><table><tr><th>Course</th><th>Rating</th><th>Comments</th><th>Date</th></tr>
+{% for f in mine %}<tr><td>{{ f.code }}</td><td>{{ f.rating }}/5</td><td>{{ f.comments or '' }}</td><td>{{ f.created_at[:10] }}</td></tr>{% endfor %}</table>{% endif %}
+{% else %}<p class="sub">Course ratings and comments from students.</p>
+{% if summary %}<table><tr><th>Course</th><th>Responses</th><th>Average rating</th></tr>
+{% for s in summary %}<tr><td>{{ s.code }} — {{ s.title }}</td><td>{{ s.n }}</td><td>{{ s.avg if s.n else '—' }}</td></tr>{% endfor %}</table>
+{% else %}<div class="empty">No courses to report on.</div>{% endif %}
+{% if comments %}<h2>Recent comments</h2>{% for f in comments %}<div class="card"><b>{{ f.code }}</b> · {{ f.rating }}/5 · <span class="muted">{{ 'Anonymous' if f.anonymous and me.role!='admin' else f.student_name }}{{ ' (anonymous to faculty)' if f.anonymous and me.role=='admin' }}</span><br>{{ f.comments }}</div>{% endfor %}{% endif %}
+{% endif %}
+{% endblock %}

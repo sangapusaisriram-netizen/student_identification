@@ -1,0 +1,12 @@
+{% extends "base.html" %}{% block title %}Applicants{% endblock %}
+{% block content %}
+<p><a href="{{ url_for('placements') }}">Back to placements</a></p>
+<h1>{{ job.company }} — {{ job.role }}</h1><p class="sub">Applicants</p>
+{% if rows %}<div class="table-wrap"><table><tr><th>Student</th><th>Roll no.</th><th>Department</th><th>Skills</th><th>Status</th></tr>
+{% for r in rows %}<tr><td>{{ r.name }}</td><td>{{ r.roll_no or '' }}</td><td>{{ r.department or '' }}</td><td>{{ r.skills or '—' }}</td>
+<td>{% if me.role=='admin' %}<form class="inline" method="post" action="{{ url_for('update_application', aid=r.id) }}" style="display:flex;gap:6px">
+<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+<select name="status" aria-label="Status for {{ r.name }}">{% for s in statuses %}<option {{ 'selected' if s==r.status }}>{{ s }}</option>{% endfor %}</select><button class="small">Save</button></form>
+{% else %}<span class="tag">{{ r.status }}</span>{% endif %}</td></tr>{% endfor %}</table></div>
+{% else %}<div class="empty">Nobody has applied yet.</div>{% endif %}
+{% endblock %}

@@ -1,0 +1,8 @@
+{% extends "base.html" %}{% block title %}Attendance{% endblock %}
+{% block content %}
+<h1>Attendance</h1><p class="sub">75% or more is usually required to sit exams.</p>
+{% if rows %}<table><tr><th>Course</th><th>Classes held</th><th>Attended</th><th>Percentage</th></tr>
+{% for r in rows %}<tr><td>{{ r.code }} — {{ r.title }}</td><td>{{ r.total }}</td><td>{{ r.present }}</td>
+<td>{% if r.pct is none %}<span class="muted">No classes recorded</span>{% else %}<span class="tag {{ 'ok' if r.pct>=75 else ('warn' if r.pct>=65 else 'bad') }}">{{ r.pct }}%</span>{% endif %}</td></tr>{% endfor %}</table>
+{% else %}<div class="empty">Enroll in courses to see attendance.</div>{% endif %}
+{% endblock %}

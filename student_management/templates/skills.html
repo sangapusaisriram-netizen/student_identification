@@ -1,0 +1,26 @@
+{% extends "base.html" %}{% block title %}Skills{% endblock %}
+{% block content %}
+<h1>{{ 'Skills & involvement' if not all_view else 'Skills' }}</h1><p class="sub">{{ 'Keep your self-assessed skills, certifications, and campus involvement current. These entries are student-reported.' if not all_view else 'Search students by skill.' }}</p>
+{% if not all_view %}
+<h2>Your skills</h2>
+<form method="post" class="card"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><input type="hidden" name="record_type" value="skill"><div class="grid"><div><label>Skill</label><input name="name" placeholder="Python, communication" required maxlength="100"></div>
+<div><label>Skill category</label><select name="category"><option>Technical</option><option>Soft</option></select></div>
+<div><label>Proficiency</label><select name="level">{% for l in levels %}<option>{{ l }}</option>{% endfor %}</select></div>
+<div><label>Assessment score / 100</label><input name="assessment_score" type="number" min="0" max="100" step="0.1" placeholder="Optional"></div>
+<div><label>Certification (optional)</label><input name="certification" maxlength="160"></div><div><button>Add skill</button></div></div></form>
+{% if rows %}<div class="table-wrap"><table><thead><tr><th>Skill</th><th>Category</th><th>Level</th><th>Assessment</th><th>Certification</th><th></th></tr></thead><tbody>
+{% for r in rows %}<tr><td>{{ r.name }}</td><td><span class="tag">{{ r.category }}</span></td><td><span class="tag">{{ r.level }}</span></td><td>{{ (r.assessment_score|string + '/100') if r.assessment_score is not none else '—' }}</td><td>{{ r.certification or '—' }}</td>
+<td><form class="inline" method="post" action="{{ url_for('delete_skill', sid=r.id) }}"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="danger small">Remove</button></form></td></tr>{% endfor %}</tbody></table></div>
+{% else %}<div class="empty">You haven't added any skills yet.</div>{% endif %}
+<h2>Campus involvement</h2>
+<form method="post" class="card"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><input type="hidden" name="record_type" value="engagement"><div class="grid"><div><label>Activity type</label><select name="kind"><option>Event</option><option>Club</option><option>Hackathon</option><option>Certification</option></select></div>
+<div><label>Activity or certification</label><input name="title" required maxlength="120"></div><div><label>Date</label><input name="activity_date" type="date" max="{{ today }}" required></div><div><label>Notes (optional)</label><input name="notes" maxlength="240"></div><div><button>Add activity</button></div></div></form>
+{% if engagements %}<div class="table-wrap"><table><thead><tr><th>Type</th><th>Activity</th><th>Date</th><th>Notes</th><th></th></tr></thead><tbody>
+{% for item in engagements %}<tr><td><span class="tag">{{ item.kind }}</span></td><td>{{ item.title }}</td><td>{{ item.activity_date }}</td><td>{{ item.notes or '—' }}</td><td><form class="inline" method="post" action="{{ url_for('delete_engagement', engagement_id=item.id) }}"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="danger small">Remove</button></form></td></tr>{% endfor %}
+</tbody></table></div>{% else %}<div class="empty">No events, clubs, hackathons, or certifications recorded yet.</div>{% endif %}
+{% else %}
+<form method="get" class="card grid"><div><label>Skill contains</label><input name="skill" value="{{ term }}"></div><div><button>Search</button></div></form>
+{% if rows %}<div class="table-wrap"><table><thead><tr><th>Student</th><th>Roll no.</th><th>Skill</th><th>Category</th><th>Level</th><th>Assessment</th><th>Certification</th></tr></thead><tbody>
+{% for r in rows %}<tr><td>{{ r.student_name }}</td><td>{{ r.roll_no or '' }}</td><td>{{ r.name }}</td><td>{{ r.category }}</td><td><span class="tag">{{ r.level }}</span></td><td>{{ (r.assessment_score|string + '/100') if r.assessment_score is not none else '—' }}</td><td>{{ r.certification or '—' }}</td></tr>{% endfor %}</tbody></table></div>
+{% else %}<div class="empty">No matching skills found.</div>{% endif %}{% endif %}
+{% endblock %}

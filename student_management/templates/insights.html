@@ -1,0 +1,63 @@
+{% extends "base.html" %}{% block title %}Student insights{% endblock %}
+{% block content %}
+<div class="insights-intro">
+  <div><span class="eyebrow insights-eyebrow">STUDENT SUCCESS / COHORT VIEW</span><h1>Student insights</h1><p class="sub">Find students who may benefit from academic or career support.</p></div>
+  <div class="insight-count"><strong>{{ students|length }}</strong><span>students in view</span></div>
+</div>
+
+<div class="segment-strip" aria-label="Student segments">
+  {% for name,count in segment_counts.items() %}
+  <div class="segment-summary"><span class="segment-dot segment-{{ loop.index0 % 5 }}"></span><span>{{ name }}</span><b>{{ count }}</b></div>
+  {% else %}<div class="empty">No students are available in your teaching roster.</div>{% endfor %}
+</div>
+
+<section class="cohort-tool" aria-labelledby="cohort-title">
+  <div class="cohort-tool-head"><div><span class="eyebrow">INTERACTIVE COHORT MAP</span><h2 id="cohort-title">Outcomes at a glance</h2></div><span class="cohort-count">{{ students|length }} profiles</span></div>
+  <div class="cohort-stage">
+    <canvas id="cohort-scene" aria-label="Three-dimensional student cohort map. Horizontal axis is success score, vertical axis is placement readiness, depth axis is risk."></canvas>
+    <div class="cohort-axis axis-x">SUCCESS SCORE</div><div class="cohort-axis axis-y">PLACEMENT READINESS</div><div class="cohort-axis axis-z">RISK</div>
+    <div class="cohort-legend" aria-label="Risk level legend"><span><i class="risk-low"></i>Low</span><span><i class="risk-mid"></i>Moderate</span><span><i class="risk-high"></i>High</span><span><i class="risk-unknown"></i>Unscored</span></div>
+    <div id="cohort-tooltip" class="cohort-tooltip" role="status" hidden></div>
+    <p id="cohort-status" class="cohort-status" role="status">Loading cohort map...</p>
+  </div>
+  <div class="cohort-foot"><span>Cohort outcomes across success, placement readiness, and risk.</span><span>Unscored profiles sit at the neutral risk baseline.</span></div>
+</section>
+
+<section class="score-method" aria-labelledby="method-title">
+  <div class="method-heading"><div><span class="eyebrow">TRANSPARENT MODEL</span><h2 id="method-title">How the indicators are calculated</h2></div><p>These are intervention signals, not a predictive model or a final academic judgement. Subject-by-subject attendance is optional; only recorded classes contribute.</p></div>
+  <div class="method-grid">
+    <div class="method-item"><span class="method-index">01</span><div><h3>Success score</h3><p>Academic performance 30%, overall recorded attendance 20%, assignment completion 10%, LMS login frequency 5%, engagement 10%, placement assessments 10%, assessed skills 10%, and feedback 5%. Subject-wise attendance is optional. Missing measures are excluded and remaining weights are normalized.</p></div></div>
+    <div class="method-item"><span class="method-index">02</span><div><h3>Placement readiness</h3><p>Aptitude, coding, and mock interviews 45%, assessed skills 35%, and application progress 20%. Application stages rise from Applied to Selected.</p></div></div>
+    <div class="method-item"><span class="method-index">03</span><div><h3>Risk flag</h3><p>Risk contributors include backlogs, marks, attendance, LMS activity, engagement, skill/placement assessments, and student/faculty feedback. Missing evidence is flagged separately, never scored as failure.</p></div></div>
+  </div>
+</section>
+
+<div class="student-list-head"><div><span class="eyebrow">INDIVIDUAL EXPLANATIONS</span><h2>Student profiles</h2></div><span class="muted">Select “Explain scores” for indicator contributions and flags.</span></div>
+<form class="insight-filters" method="get" action="{{ url_for('student_insights') }}">
+  <div><label for="student-search">Search name or roll number</label><input id="student-search" name="q" value="{{ search }}" placeholder="e.g. Aarav or CS21"></div>
+  <div><label for="segment-filter">Segment</label><select id="segment-filter" name="segment"><option value="">All segments</option>{% for name in segment_counts %}<option value="{{ name }}" {{ 'selected' if segment_filter==name }}>{{ name }}</option>{% endfor %}</select></div>
+  <button type="submit" class="btn ghost">Filter</button>
+</form>
+{% if students %}
+<div class="insight-table-wrap"><table class="insight-table"><thead><tr><th>Student</th><th>Segment</th><th>Success</th><th>Readiness</th><th>Risk</th><th>Next step</th></tr></thead><tbody>
+{% for student in students %}
+<tr id="student-{{ student.id }}" data-student-id="{{ student.id }}" tabindex="-1"><td><strong>{{ student.name }}</strong><small>{{ student.roll_no or 'No roll number' }}{% if student.department %} · {{ student.department }}{% endif %}</small></td>
+<td><span class="segment-pill">{{ student.segment }}</span></td>
+<td>{% if student.success is not none %}<span class="score-value">{{ student.success }}</span><span class="score-unit">/100</span>{% else %}<span class="score-na">Not enough data</span>{% endif %}</td>
+<td><span class="score-value">{{ student.readiness }}</span><span class="score-unit">/100</span></td>
+<td>{% if student.risk is not none %}<span class="risk-pill risk-{{ student.risk_band|lower }}">{{ student.risk_band }} · {{ student.risk }}</span>{% else %}<span class="risk-pill risk-insufficient">Insufficient data</span>{% endif %}</td>
+<td><span class="recommendation">{{ student.recommendation }}</span><details class="explain-details"><summary>Explain scores</summary><div class="explain-panel">
+  <div class="explain-column"><h3>Success score</h3>{% for factor in student.success_factors %}<div class="factor-row"><span>{{ factor.name }}</span><b>{{ factor.value }}%</b><small>{{ factor.effective_weight }}% weight · +{{ factor.contribution }} points</small></div>{% else %}<p class="muted">No success indicators have been recorded.</p>{% endfor %}<h3 class="explain-subhead">Placement readiness</h3>{% for factor in student.readiness_factors %}<div class="factor-row"><span>{{ factor.name }}</span><b>{{ factor.value }}%</b><small>{{ factor.effective_weight }}% weight · +{{ factor.contribution }} points</small></div>{% endfor %}</div>
+  <div class="explain-column"><h3>Academic and learning record</h3><div class="indicator-line"><span>Academic average</span><b>{{ student.academic|string + '%' if student.academic is not none else 'Not recorded' }}</b></div><div class="indicator-line"><span>Backlogs</span><b>{{ student.backlogs if student.backlogs is not none else 'Not recorded' }}</b></div>{% for subject in student.subject_results %}<div class="indicator-line"><span>{{ subject.code }} · subject result</span><b>{{ subject.pct }}% · {{ subject.grade }}</b></div>{% endfor %}<div class="indicator-line"><span>Overall attendance</span><b>{{ student.attendance|string + '%' if student.attendance is not none else 'Not recorded' }}</b></div>{% for subject in student.subject_attendance %}<div class="indicator-line"><span>{{ subject.code }} · attendance</span><b>{{ subject.pct|string + '%' if subject.pct is not none else 'Not recorded' }}</b></div>{% endfor %}<div class="indicator-line"><span>Assignment completion</span><b>{{ student.assignment_completion|string + '%' if student.assignment_completion is not none else 'No assignments' }}</b></div><div class="indicator-line"><span>Successful LMS logins · 30 days</span><b>{{ student.login_count if student.login_window_complete else 'Building · ' ~ student.login_tracking_days ~ '/30 days' }}</b></div></div>
+  <div class="explain-column"><h3>Career, skills, and engagement</h3><div class="indicator-line"><span>Placement assessment average</span><b>{{ student.placement_score|string + '/100' if student.placement_score is not none else 'Not recorded' }}</b></div>{% if student.placement_assessment %}{% for key,label in [('aptitude_score','Aptitude'),('coding_score','Coding'),('mock_interview_score','Mock interview')] %}<div class="indicator-line"><span>{{ label }}</span><b>{{ student.placement_assessment[key]|string + '/100' if student.placement_assessment[key] is not none else 'Not recorded' }}</b></div>{% endfor %}{% endif %}<div class="indicator-line"><span>Skill assessment average</span><b>{{ student.skill_score|string + '/100' if student.skill_score is not none else 'Not recorded' }}</b></div>{% for skill in student.skills %}<div class="indicator-line"><span>{{ skill.category }} · {{ skill.name }} · {{ skill.level }}</span><b>{{ skill.assessment_score|string + '/100' if skill.assessment_score is not none else 'Self-reported' }}</b></div>{% endfor %}<div class="indicator-line"><span>Engagement score</span><b>{{ student.engagement_score|string + '/100' if student.engagement_score is not none else 'Not recorded' }}</b></div>{% for kind,count in student.engagement_counts.items() %}<div class="indicator-line"><span>{{ kind }} participation</span><b>{{ count }}</b></div>{% endfor %}<div class="indicator-line"><span>Student satisfaction</span><b>{{ student.student_satisfaction|string + '/100' if student.student_satisfaction is not none else 'Not recorded' }}</b></div><div class="indicator-line"><span>Faculty feedback</span><b>{{ student.faculty_feedback_score|string + '/100' if student.faculty_feedback_score is not none else 'Not recorded' }}</b></div>{% for feedback in student.faculty_feedback_entries %}<p class="feedback-note"><b>{{ feedback.course }} · {{ feedback.faculty_name }} · {{ feedback.rating }}/5</b>{% if feedback.comments %}<br>{{ feedback.comments }}{% endif %}</p>{% endfor %}</div>
+  <div class="explain-column"><h3>Risk contributors</h3>{% for factor in student.risk_factors %}<div class="factor-row"><span>{{ factor.name }}</span><b>{{ factor.value|round|int }}%</b><small>{{ factor.effective_weight }}% weight · +{{ factor.contribution }} risk points</small></div>{% else %}<p class="muted">No measurable risk indicators are available.</p>{% endfor %}{% for flag in student.risk_flags %}<p class="risk-flag">{{ flag }}</p>{% else %}<p class="muted">No threshold flags.</p>{% endfor %}</div>
+  <div class="explain-column staff-entry"><h3>Record placement assessment</h3><form method="post" action="{{ url_for('record_placement_assessment', student_id=student.id) }}"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><div class="staff-score-fields"><label>Aptitude<input name="aptitude_score" type="number" min="0" max="100" step="0.1" placeholder="/100"></label><label>Coding<input name="coding_score" type="number" min="0" max="100" step="0.1" placeholder="/100"></label><label>Mock interview<input name="mock_interview_score" type="number" min="0" max="100" step="0.1" placeholder="/100"></label></div><button class="small" type="submit">Save assessment</button></form><small class="field-hint">Latest assessed scores are used in the readiness score.</small></div>
+  {% if me.role=='faculty' and shared_courses.get(student.id) %}<div class="explain-column staff-entry"><h3>Record faculty feedback</h3><form method="post" action="{{ url_for('record_faculty_feedback', student_id=student.id) }}"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><label>Course<select name="course_id" required>{% for course in shared_courses.get(student.id,[]) %}<option value="{{ course.id }}">{{ course.code }}</option>{% endfor %}</select></label><label>Observation<select name="rating"><option value="5">5 · Excellent</option><option value="4">4 · Strong</option><option value="3">3 · Developing</option><option value="2">2 · Needs support</option><option value="1">1 · Urgent support</option></select></label><label>Notes<textarea name="comments" maxlength="500" rows="2"></textarea></label><button class="small" type="submit">Save feedback</button></form></div>{% endif %}
+</div></details></td></tr>
+{% endfor %}
+</tbody></table></div>
+{% else %}<div class="empty">No students match this view.</div>{% endif %}
+<script id="cohort-data" type="application/json">{{ students|tojson }}</script>
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"}}</script>
+<script type="module" src="{{ url_for('static', filename='insights.js', v='20261014') }}"></script>
+{% endblock %}

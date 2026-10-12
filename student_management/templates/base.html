@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{% block title %}Campus Hub{% endblock %}</title>
+<meta name="theme-color" content="#173f38">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head><body>
+{% if me %}
+<div class="layout">
+<aside class="side" id="sidebar" aria-label="Main navigation">
+  <a class="brand" href="{{ url_for('dashboard') }}">
+    <span class="brand-mark" aria-hidden="true">CH</span>
+    <span class="brand-copy"><strong>Campus Hub</strong><small>Student management</small></span>
+  </a>
+  <span class="nav-label">Workspace</span>
+  <nav class="nav-links">
+  {% set links = [('dashboard','Overview'),('courses','Academics'),('attendance','Attendance'),
+     ('results','Results'),('lms','Learning space'),('skills','Skills'),('placements','Placements'),
+     ('feedback','Feedback')] %}
+  {% for ep,label in links %}
+    {% set active = request.endpoint==ep or (ep=='courses' and request.endpoint=='roster') or (ep=='attendance' and request.endpoint=='attendance_mark') or (ep=='results' and request.endpoint=='results_enter') or (ep=='lms' and request.endpoint in ['lms_course','assignment']) or (ep=='placements' and request.endpoint=='applicants') %}
+    <a href="{{ url_for(ep) }}" class="nav-link {{ 'on' if active }}" {% if active %}aria-current="page"{% endif %}>{{ label }}</a>
+  {% endfor %}
+  {% if me.role in ['admin','faculty'] %}<a href="{{ url_for('student_insights') }}" class="nav-link {{ 'on' if request.endpoint=='student_insights' }}" {% if request.endpoint=='student_insights' %}aria-current="page"{% endif %}>Student insights</a>{% endif %}
+  {% if me.role=='admin' %}<a href="{{ url_for('users') }}" class="nav-link {{ 'on' if request.endpoint=='users' }}" {% if request.endpoint=='users' %}aria-current="page"{% endif %}>Users</a>{% endif %}
+  </nav>
+  <div class="who">
+    <span class="avatar" aria-hidden="true">{{ me.name[0]|upper }}</span>
+    <span class="who-copy"><b>{{ me.name }}</b><small>{{ me.role|capitalize }}</small></span>
+    <form method="post" action="{{ url_for('logout') }}"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="sign-out" type="submit" aria-label="Sign out">↗</button></form>
+  </div>
+</aside>
+<button class="sidebar-scrim" type="button" aria-label="Close navigation" data-sidebar-close></button>
+<div class="main-shell">
+<header class="topbar">
+  <button class="menu-toggle" type="button" aria-controls="sidebar" aria-expanded="false" data-sidebar-toggle>Menu</button>
+  <div class="topbar-title">{{ self.title() }}</div>
+  <div class="topbar-user"><span class="topbar-role">{{ me.role|capitalize }}</span><span class="avatar avatar-small" aria-hidden="true">{{ me.name[0]|upper }}</span></div>
+</header>
+<main class="page-content">
+{% else %}
+<div class="auth-layout">
+  <aside class="auth-aside">
+    <a class="brand brand-auth" href="{{ url_for('login') }}"><span class="brand-mark" aria-hidden="true">CH</span><span class="brand-copy"><strong>Campus Hub</strong><small>Student management</small></span></a>
+    <div class="auth-aside-copy"><span class="eyebrow">CAMPUS / 01</span><h1>A new term,<br>in focus.</h1><span class="auth-rule"></span><p>Campus Hub</p></div>
+    <span class="auth-edition">ACADEMIC WORKSPACE</span>
+  </aside>
+  <main class="login-main">
+{% endif %}
+{% with msgs = get_flashed_messages(with_categories=true) %}{% for cat,m in msgs %}<div class="flash {{ cat }}">{{ m }}</div>{% endfor %}{% endwith %}
+{% block content %}{% endblock %}
+</main>
+{% if me %}</div>{% else %}</div>{% endif %}
+{% if me %}<script>
+const sidebarToggle = document.querySelector('[data-sidebar-toggle]');
+const sidebarClose = document.querySelector('[data-sidebar-close]');
+const setSidebarOpen = (open) => {
+  document.body.classList.toggle('sidebar-open', open);
+  sidebarToggle.setAttribute('aria-expanded', String(open));
+};
+sidebarToggle.addEventListener('click', () => setSidebarOpen(!document.body.classList.contains('sidebar-open')));
+sidebarClose.addEventListener('click', () => setSidebarOpen(false));
+document.querySelectorAll('.nav-link').forEach((link) => link.addEventListener('click', () => setSidebarOpen(false)));
+document.addEventListener('keydown', (event) => { if (event.key === 'Escape') setSidebarOpen(false); });
+</script>{% endif %}
+</body></html>

@@ -1,0 +1,17 @@
+{% extends "base.html" %}{% block title %}{{ a.title }}{% endblock %}
+{% block content %}
+<p><a href="{{ url_for('lms_course', cid=course.id) }}">Back to {{ course.code }}</a></p>
+<h1>{{ a.title }}</h1><p class="sub">Due {{ a.due_date or 'no date set' }} · {{ a.max_marks }} marks</p>
+<div class="card">{{ a.description or 'No instructions provided.' }}</div>
+{% if me.role=='student' %}
+{% if mine and mine.grade is not none %}<div class="card"><b>Grade: {{ mine.grade|round(1) }} / {{ a.max_marks }}</b><br>{{ mine.remarks or '' }}</div>{% endif %}
+<form method="post" class="card"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><label>Your answer</label><textarea name="content" required>{{ mine.content if mine else '' }}</textarea>
+<p><button>{{ 'Update submission' if mine else 'Submit assignment' }}</button></p></form>
+{% else %}
+{% if subs %}{% for s in subs %}<div class="card"><b>{{ s.name }}</b> <span class="muted">{{ s.roll_no or '' }} · {{ s.submitted_at[:16] }}</span>
+<p style="white-space:pre-wrap">{{ s.content }}</p>
+<form method="post" action="{{ url_for('grade_submission', sid=s.id) }}" class="grid"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+<div><label>Marks (max {{ a.max_marks }})</label><input name="grade" type="number" step="0.5" min="0" max="{{ a.max_marks }}" value="{{ s.grade if s.grade is not none else '' }}" required></div>
+<div><label>Remarks</label><input name="remarks" value="{{ s.remarks or '' }}"></div><div><button>Save grade</button></div></form></div>{% endfor %}
+{% else %}<div class="empty">No submissions yet.</div>{% endif %}{% endif %}
+{% endblock %}

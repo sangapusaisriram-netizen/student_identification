@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{% block title %}Campus Hub{% endblock %}</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head><body>
+{% if me %}
+<div class="layout">
+<nav class="side">
+  <div class="brand">Campus Hub</div>
+  {% set links = [('dashboard','Dashboard'),('courses','Academics'),('attendance','Attendance'),
+     ('results','Results'),('lms','Learning space'),('skills','Skills'),('placements','Placements'),
+     ('feedback','Feedback')] %}
+  {% for ep,label in links %}<a href="{{ url_for(ep) }}" class="{{ 'on' if request.endpoint==ep }}">{{ label }}</a>{% endfor %}
+  {% if me.role=='admin' %}<a href="{{ url_for('users') }}" class="{{ 'on' if request.endpoint=='users' }}">Users</a>{% endif %}
+  <div class="who"><b>{{ me.name }}</b>{{ me.role|capitalize }}<br><a href="{{ url_for('logout') }}" style="padding:0">Sign out</a></div>
+</nav>
+<main>
+{% else %}<main class="login">{% endif %}
+{% with msgs = get_flashed_messages(with_categories=true) %}{% for cat,m in msgs %}<div class="flash {{ cat }}">{{ m }}</div>{% endfor %}{% endwith %}
+{% block content %}{% endblock %}
+</main>
+{% if me %}</div>{% endif %}
+</body></html>

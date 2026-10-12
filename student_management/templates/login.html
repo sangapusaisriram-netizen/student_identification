@@ -1,0 +1,14 @@
+{% extends "base.html" %}{% block title %}Sign in{% endblock %}
+{% block content %}
+<div class="card">
+<h1>Welcome back</h1><p class="sub">Sign in to your campus account.</p>
+<form method="post">
+<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+<p><label for="email">Email or Gmail address</label><input id="email" name="email" type="email" autocomplete="username" placeholder="sunny@gmail.com" required autofocus></p>
+<p><label for="password">Password</label><input id="password" name="password" type="password" required></p>
+<button type="submit">Sign in to Campus Hub</button>
+</form>
+<a class="btn ghost signup-cta" href="{{ url_for('signup') }}">Create a student account</a>
+<p class="login-footnote">Use your Gmail and password to sign in.</p></div>
+<p class="auth-links"><a href="{{ url_for('forgot_password') }}">Forgot password?</a></p>
+{% endblock %}

@@ -1,0 +1,11 @@
+{% extends "base.html" %}{% block title %}Roster{% endblock %}
+{% block content %}
+<h1>{{ course.code }} roster</h1><p class="sub">{{ course.title }}</p>
+{% if me.role=='admin' and others %}
+<div class="card"><form method="post" class="grid"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><div><label>Enroll a student</label>
+<select name="student_id">{% for s in others %}<option value="{{ s.id }}">{{ s.name }} ({{ s.roll_no or 'no roll no.' }})</option>{% endfor %}</select></div>
+<div><button>Enroll student</button></div></form></div>{% endif %}
+{% if students %}<table><tr><th>Roll no.</th><th>Name</th><th>Department</th></tr>
+{% for s in students %}<tr><td>{{ s.roll_no or '' }}</td><td>{{ s.name }}</td><td>{{ s.department or '' }}</td></tr>{% endfor %}</table>
+{% else %}<div class="empty">No students are enrolled yet.</div>{% endif %}
+{% endblock %}

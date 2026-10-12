@@ -1,0 +1,14 @@
+{% extends "base.html" %}{% block title %}Results{% endblock %}
+{% block content %}
+<h1>Results</h1><p class="sub">Grades use a 10-point scale weighted by course credits.</p>
+<div class="stats"><div class="stat"><b>{{ cgpa if summary else '—' }}</b><span>CGPA</span></div></div>
+{% if summary %}
+<h2>Course grades</h2>
+<table><tr><th>Course</th><th>Credits</th><th>Total</th><th>Percentage</th><th>Grade</th><th>Points</th></tr>
+{% for r in summary %}<tr><td>{{ r.code }} — {{ r.title }}</td><td>{{ r.credits }}</td><td>{{ r.got|round(1) }} / {{ r.mx|round(1) }}</td><td>{{ r.pct }}%</td>
+<td><span class="tag {{ 'bad' if r.grade=='F' else 'ok' }}">{{ r.grade }}</span></td><td>{{ r.points }}</td></tr>{% endfor %}</table>
+<h2>Exam-wise marks</h2>
+<table><tr><th>Course</th><th>Exam</th><th>Marks</th></tr>
+{% for r in detail %}<tr><td>{{ r.code }}</td><td>{{ r.exam }}</td><td>{{ r.marks|round(1) }} / {{ r.max_marks|round(1) }}</td></tr>{% endfor %}</table>
+{% else %}<div class="empty">No results have been published yet.</div>{% endif %}
+{% endblock %}

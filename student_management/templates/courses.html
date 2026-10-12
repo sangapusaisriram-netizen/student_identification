@@ -1,0 +1,25 @@
+{% extends "base.html" %}{% block title %}Academics{% endblock %}
+{% block content %}
+<h1>Academics</h1><p class="sub">Courses offered this term{{ ' — enroll in the ones you are taking' if me.role=='student' }}.</p>
+{% if me.role=='admin' %}
+<div class="card"><form method="post"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><div class="grid">
+<div><label>Code</label><input name="code" required></div>
+<div><label>Title</label><input name="title" required></div>
+<div><label>Credits</label><input name="credits" type="number" min="1" max="10" value="3" required></div>
+<div><label>Semester</label><input name="semester" type="number" min="1" max="12" value="1" required></div>
+<div><label>Faculty</label><select name="faculty_id"><option value="">Unassigned</option>{% for f in faculty %}<option value="{{ f.id }}">{{ f.name }}</option>{% endfor %}</select></div>
+<div><button type="submit">Create course</button></div></div></form></div>
+{% endif %}
+{% if courses %}<div class="table-wrap"><table><tr><th>Code</th><th>Title</th><th>Credits</th><th>Sem</th><th>Faculty</th><th>Enrolled</th><th></th></tr>
+{% for c in courses %}<tr><td>{{ c.code }}</td><td>{{ c.title }}</td><td>{{ c.credits }}</td><td>{{ c.semester }}</td><td>{{ c.faculty_name or '—' }}</td><td>{{ c.enrolled }}</td>
+<td>
+{% if me.role=='student' %}
+  {% if c.id in mine %}<form class="inline" method="post" action="{{ url_for('drop', cid=c.id) }}"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="danger small">Drop</button></form>
+  {% else %}<form class="inline" method="post" action="{{ url_for('enroll', cid=c.id) }}"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="small">Enroll</button></form>{% endif %}
+{% elif me.role=='admin' %}
+  <a class="btn ghost small" href="{{ url_for('roster', cid=c.id) }}">Roster</a>
+  <form class="inline" method="post" action="{{ url_for('delete_course', cid=c.id) }}" onsubmit="return confirm('Delete {{ c.code }} and all its records?')"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="danger small">Delete</button></form>
+{% elif c.faculty_id==me.id %}<a class="btn ghost small" href="{{ url_for('roster', cid=c.id) }}">Roster</a>{% endif %}
+</td></tr>{% endfor %}</table></div>
+{% else %}<div class="empty">No courses yet.{{ ' Create the first one above.' if me.role=='admin' }}</div>{% endif %}
+{% endblock %}

@@ -1,0 +1,16 @@
+{% extends "base.html" %}{% block title %}Placements{% endblock %}
+{% block content %}
+<h1>Placements</h1><p class="sub">Open positions from visiting companies.</p>
+{% if me.role=='admin' %}<form method="post" class="card"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><div class="grid">
+<div><label>Company</label><input name="company" required></div><div><label>Role</label><input name="role" required></div>
+<div><label>Package</label><input name="package" placeholder="6 LPA"></div><div><label>Eligibility</label><input name="eligibility" placeholder="CGPA 6.5+"></div>
+<div><label>Apply by</label><input name="deadline" type="date"></div><div><label>Description</label><input name="description"></div>
+<div><button>Post job</button></div></div></form>{% endif %}
+{% if jobs %}<div class="table-wrap"><table><tr><th>Company</th><th>Role</th><th>Package</th><th>Eligibility</th><th>Apply by</th><th></th></tr>
+{% for j in jobs %}<tr><td><b>{{ j.company }}</b></td><td>{{ j.role }}<br><span class="muted">{{ j.description or '' }}</span></td><td>{{ j.package or '—' }}</td><td>{{ j.eligibility or '—' }}</td><td>{{ j.deadline or '—' }}</td>
+<td>{% if me.role=='student' %}{% if j.id in mine %}<span class="tag {{ 'ok' if mine[j.id]=='Selected' else ('bad' if mine[j.id]=='Rejected' else 'warn') }}">{{ mine[j.id] }}</span>
+{% else %}<form class="inline" method="post" action="{{ url_for('apply_job', jid=j.id) }}"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="small">Apply</button></form>{% endif %}
+{% else %}<a class="btn ghost small" href="{{ url_for('applicants', jid=j.id) }}">Applicants ({{ j.applicants }})</a>
+{% if me.role=='admin' %}<form class="inline" method="post" action="{{ url_for('delete_job', jid=j.id) }}" onsubmit="return confirm('Remove this job?')"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="danger small">Remove</button></form>{% endif %}{% endif %}</td></tr>{% endfor %}</table></div>
+{% else %}<div class="empty">No jobs are open right now.</div>{% endif %}
+{% endblock %}
